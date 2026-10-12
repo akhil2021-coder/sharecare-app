@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  # Base Shared Database
+  postgres:
+    image: postgres:15
+    container_name: sharecare-db
+    environment:
+      - POSTGRES_PASSWORD=foo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - sharecare-net
+
+  user-app:
+    build: ./user
+    container_name: user-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=foo
+    depends_on:
+      - postgres
+    networks:
+      - sharecare-net
+
+  post-app:
+    build: ./post
+    container_name: post-app
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=foo
+    depends_on:
+      - postgres
+    networks:
+      - sharecare-net
+
+  charity-app:
+    build: ./charity
+    container_name: charity-app
+    ports:
+      - "3002:3002"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=foo
+    depends_on:
+      - postgres
+    networks:
+      - sharecare-net
+
+  media-app:
+    build: ./media
+    container_name: media-app
+    ports:
+      - "3003:3003"
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=postgres
+      - DATABASE_USERNAME=postgres
+      - DATABASE_PASSWORD=foo
+    depends_on:
+      - postgres
+    networks:
+      - sharecare-net
+
+  web-app:
+    build: ./web
+    container_name: web-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-app
+      - post-app
+      - charity-app
+      - media-app
+    networks:
+      - sharecare-net
+
+networks:
+  sharecare-net:
+    driver: bridge
