@@ -13,3 +13,6 @@ Share&Care application is a rapidly growing social network primarily focused on 
 - Posts API: This API is used to refer the post user created to a certain charity. 
 
 - User API: This API is used by the application to create and modify the users.
+
+
+2. # Coach automation verification test
