@@ -1,0 +1,54 @@
+name: Microservices Continuous Integration
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - '**/package.json'          # Triggers if app packages change
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**/package.json'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    # 1. Pull the codebase down to the runner runner environment
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Setup Node.js runtime environment (per your package-lock.json structure)
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    # 3. Execute application unit tests to validate the microservice code stability
+    - name: Execute Component Unit Tests
+      run: |
+        echo "Running automated application unit tests..."
+        # Note: If your microservices require separate test commands, 
+        # replace this with your team's test scripts (e.g., npm test)
+        npm run test --if-present
+
+    # 4. Securely authenticate with your Azure Container Registry using GitHub Secrets
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    # 5. Build and compile the Docker image, then push it to your Azure repository
+    - name: Build and Push Docker Image Artifact
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ${{ secrets.ACR_LOGIN_SERVER }}/sharecare-app:latest
+          ${{ secrets.ACR_LOGIN_SERVER }}/sharecare-app:${{ github.sha }}
